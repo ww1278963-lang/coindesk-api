@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,5 +35,19 @@ public class GlobalExceptionHandler {
                                 : fieldError.getField() + " " + fieldError.getDefaultMessage();
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body(Collections.singletonMap("message", message));
+        }
+
+        //JSON格式錯誤時處理
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<Map<String, String>> handleNotReadable(HttpMessageNotReadableException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Collections.singletonMap("message", "請求內容不是合法的 JSON"));
+        }
+
+        //coindesk連不上時處理
+        @ExceptionHandler(CoindeskUnavailableException.class)
+        public ResponseEntity<Map<String, String>> handleCoindeskUnavailable(CoindeskUnavailableException e) {
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                                .body(Collections.singletonMap("message", e.getMessage()));
         }
 }
